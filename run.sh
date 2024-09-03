@@ -22,8 +22,10 @@ if [ ! -f ${exe} ] ; then
 fi
 
 ### set mesh name
-#mesh=eight
 mesh=cylinder
+# mesh=eight
+# mesh=simplecase
+# mesh=stair
 
 ## set output dir
 out_dir=${tmpdir}/output
@@ -34,7 +36,8 @@ mkdir -p ${out_mesh_dir}
 obj=${in_dir}/${mesh}.obj
 plane=${out_mesh_dir}/${mesh}.plane
 cut_mesh=${out_mesh_dir}/${mesh}.cm.vtk
-
+cut_mesh_tri=${out_mesh_dir}/${mesh}.cm.vtk-tri.vtk
+cut_mesh_ply=${out_mesh_dir}/${mesh}.cm.ply-tri.ply
 
 
 #### Generate cut planes
@@ -44,5 +47,7 @@ ${exe} plane -i ${obj} -o ${plane} -s bound_box_xyz --nx 5 --ny 5 --nz 5
 #${exe} plane -i ${obj} -o ${plane} -s random -P 10
 
 ## Generate cut-mesh by using cut-planes
-${exe} cut -i ${obj} -p ${plane} -o ${cut_mesh} --is-triangulate 0
+${exe} cut -i ${obj} -p ${plane} -o ${cut_mesh} --is-triangulate 1
 
+## Convert cut-mesh to ply format
+${exe} poly2ply -i ${cut_mesh_tri} -o ${cut_mesh_ply}

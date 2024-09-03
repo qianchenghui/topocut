@@ -62,7 +62,14 @@ int polyvtk_to_ply(
   size_t cell_num(0);
   if (read_poly_vtk(in_poly, V, C, cell_num)) {return 1;}
 
-  std::set<std::tuple<size_t,size_t,size_t> > tris;
+  //2024-09-03 fixbug:修复了部分三角面法向方向相反问题 by:qianchenghui[
+  // std::set<std::tuple<size_t,size_t,size_t> > tris;
+  //]
+
+  //2024-09-03 fixbug:修复了部分三角面法向方向相反问题 by:qianchenghui[
+  std::vector<std::tuple<size_t,size_t,size_t>> tris;
+  std::set<std::tuple<size_t,size_t,size_t>> unique_tris;
+  //]
 
   size_t id=0;
   for (size_t ci = 0; ci < cell_num; ++ci) {
@@ -83,8 +90,24 @@ int polyvtk_to_ply(
         std::cerr << "# [ ERROR ] the polyhedral mesh has non triangle face." << std::endl;
         return 1;
       }
-      std::sort(f_vs.begin(), f_vs.end());
-      tris.insert(std::make_tuple(f_vs[0], f_vs[1], f_vs[2]));
+
+        //2024-08-09 fixbug:修复了部分三角面法向方向相反问题 by:qianchenghui[
+        // 创建一个排序后的三角形用于检查唯一性
+        std::vector<size_t> sorted_f_vs = f_vs;
+        std::sort(sorted_f_vs.begin(), sorted_f_vs.end());
+        auto unique_tri = std::make_tuple(sorted_f_vs[0], sorted_f_vs[1], sorted_f_vs[2]);
+        
+        // 只有当这个三角形是唯一的时候才添加
+        if (unique_tris.insert(unique_tri).second) {
+            // tris.push_back(std::make_tuple(f_vs[0], f_vs[1], f_vs[2]));
+            tris.push_back(std::make_tuple(f_vs[2], f_vs[1], f_vs[0]));
+        }
+        //]
+
+      //2024-09-03 fixbug:修复了部分三角面法向方向相反问题 by:qianchenghui[
+      // std::sort(f_vs.begin(), f_vs.end());
+      // tris.insert(std::make_tuple(f_vs[0], f_vs[1], f_vs[2]));
+      //]
     }
   }
   
